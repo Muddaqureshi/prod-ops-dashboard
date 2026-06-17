@@ -191,7 +191,7 @@
   <!-- Info View -->
   <div id="info-view" style="display:none;">
     <h2 class="section-title">Model Reference Guide</h2>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">🔧 Fleet-Validated Ensemble: 5 active models (Prophet, LinearRegression, Monte Carlo, ExpSmoothing, AutoTheta). Per-metric selection based on 12-month holdout backtest. Inverse-MAPE weighted average. Models >60% MAPE excluded from ensemble. <strong>Exception for Actions:</strong> equal weights used (see methodology below).</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">🔧 Ensemble Approach: 5 active models using <strong>Darts</strong> time-series library (Prophet, LinearRegression, ExpSmoothing, AutoTheta) + custom <strong>Monte Carlo</strong> simulation. Per-metric selection based on 12-month holdout backtest. Inverse-MAPE weighted average. Models >60% MAPE excluded from ensemble. <strong>Exception for Actions:</strong> equal weights used (see methodology below).</p>
     <div style="overflow-x:auto;">
       <table style="table-layout:auto;font-size:13px;">
         <thead><tr>
@@ -254,50 +254,50 @@
     </div>
     <!-- Data Sources Table -->
     <h2 class="section-title" style="margin-top:36px;">📡 Data Sources</h2>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">All data queried from Trino (delta.canonical.* tables) cluster <code style="color:var(--blue)">gh-analytics.eastus.kusto.windows.net</code></p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">All data queried from Trino (<code style="color:var(--blue)">delta.canonical.*</code> tables)</p>
     <div style="overflow-x:auto;margin-bottom:32px;">
       <table style="table-layout:auto;font-size:13px;">
         <thead><tr>
           <th>Metric</th>
-          <th>ADX Database.Table</th>
-          <th>Key Column</th>
+          <th>Trino Table</th>
+          <th>Key Filters</th>
           <th>Date Range</th>
         </tr></thead>
         <tbody>
           <tr>
             <td style="font-weight:600">Repos Created</td>
-            <td><code>database('canonical').repositories_current</code></td>
-            <td><code>created_at</code></td>
+            <td><code>delta.canonical.repositories_all</code></td>
+            <td><code>is_spammy_owner=FALSE</code>, <code>created_at</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">PR Merges</td>
-            <td><code>database('canonical').pull_requests_current</code></td>
-            <td><code>state='merged'</code>, <code>closed_at</code></td>
+            <td><code>delta.canonical.pull_requests_all</code></td>
+            <td><code>state='merged'</code>, <code>is_spammy_owner=FALSE</code>, <code>is_staff_owned=FALSE</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Issues Created</td>
-            <td><code>database('canonical').issues_current</code></td>
-            <td><code>created_at</code></td>
+            <td><code>delta.canonical.issues_all</code></td>
+            <td>JOIN <code>accounts_all</code>, <code>is_spammy=FALSE</code>, <code>is_staff=FALSE</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Commits</td>
-            <td><code>database('snapshots').github_collab_commit_contributions_current</code></td>
-            <td><code>sum(commit_count)</code>, <code>committed_date</code></td>
+            <td><code>delta.canonical.commits_all</code></td>
+            <td>JOIN <code>repositories_all</code>, <code>is_spammy_owner=FALSE</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Actions Runs</td>
-            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
-            <td><code>count()</code>, <code>created_at</code></td>
+            <td><code>delta.canonical.github_actions_workflow_runs_all</code></td>
+            <td><code>status='completed'</code>, <code>created_at</code></td>
             <td>Jun 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Actions Minutes</td>
-            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
-            <td><code>sum(duration_min)</code>, <code>created_at</code></td>
+            <td><code>delta.canonical.github_actions_workflow_runs_all</code></td>
+            <td><code>sum(duration_seconds)/60</code>, <code>status='completed'</code></td>
             <td>Jun 2025 – May 2026</td>
           </tr>
         </tbody>
@@ -519,50 +519,50 @@
     </div>
     <!-- Data Sources Table -->
     <h2 class="section-title" style="margin-top:36px;">📡 Data Sources</h2>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">All data queried from Trino (delta.canonical.* tables) cluster <code style="color:var(--blue)">gh-analytics.eastus.kusto.windows.net</code></p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">All data queried from Trino (<code style="color:var(--blue)">delta.canonical.*</code> tables)</p>
     <div style="overflow-x:auto;margin-bottom:32px;">
       <table style="table-layout:auto;font-size:13px;">
         <thead><tr>
           <th>Metric</th>
-          <th>ADX Database.Table</th>
-          <th>Key Column</th>
+          <th>Trino Table</th>
+          <th>Key Filters</th>
           <th>Date Range</th>
         </tr></thead>
         <tbody>
           <tr>
             <td style="font-weight:600">Repos Created</td>
-            <td><code>database('canonical').repositories_current</code></td>
-            <td><code>created_at</code></td>
+            <td><code>delta.canonical.repositories_all</code></td>
+            <td><code>is_spammy_owner=FALSE</code>, <code>created_at</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">PR Merges</td>
-            <td><code>database('canonical').pull_requests_current</code></td>
-            <td><code>state='merged'</code>, <code>closed_at</code></td>
+            <td><code>delta.canonical.pull_requests_all</code></td>
+            <td><code>state='merged'</code>, <code>is_spammy_owner=FALSE</code>, <code>is_staff_owned=FALSE</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Issues Created</td>
-            <td><code>database('canonical').issues_current</code></td>
-            <td><code>created_at</code></td>
+            <td><code>delta.canonical.issues_all</code></td>
+            <td>JOIN <code>accounts_all</code>, <code>is_spammy=FALSE</code>, <code>is_staff=FALSE</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Commits</td>
-            <td><code>database('snapshots').github_collab_commit_contributions_current</code></td>
-            <td><code>sum(commit_count)</code>, <code>committed_date</code></td>
+            <td><code>delta.canonical.commits_all</code></td>
+            <td>JOIN <code>repositories_all</code>, <code>is_spammy_owner=FALSE</code></td>
             <td>May 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Actions Runs</td>
-            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
-            <td><code>count()</code>, <code>created_at</code></td>
+            <td><code>delta.canonical.github_actions_workflow_runs_all</code></td>
+            <td><code>status='completed'</code>, <code>created_at</code></td>
             <td>Jun 2025 – May 2026</td>
           </tr>
           <tr>
             <td style="font-weight:600">Actions Minutes</td>
-            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
-            <td><code>sum(duration_min)</code>, <code>created_at</code></td>
+            <td><code>delta.canonical.github_actions_workflow_runs_all</code></td>
+            <td><code>sum(duration_seconds)/60</code>, <code>status='completed'</code></td>
             <td>Jun 2025 – May 2026</td>
           </tr>
         </tbody>
