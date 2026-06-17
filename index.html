@@ -93,7 +93,6 @@
       <button data-view="validation" onclick="switchView('validation')">✅ Validation</button>
     </div>
     <div class="toggle-group" style="margin-left:auto;">
-      <button data-view="data-sources" onclick="switchView('data-sources')">💾 Data Sources</button>
       <button data-view="info" onclick="switchView('info')">ℹ️ Info</button>
     </div>
   </div>
@@ -321,137 +320,9 @@
           <tr><td style="color:#ff6ec7;font-weight:600">Monte Carlo (Custom)</td><td style="color:var(--green)">✅ Active (4/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout</td><td>PRs (12-17%), Commits (26-43%)</td></tr>
           <tr><td style="color:#f0883e;font-weight:600">ExpSmoothing</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Commits (21-26%)</td></tr>
           <tr><td style="color:#d2a8ff;font-weight:600">AutoTheta</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Issues (23-25%)</td></tr>
-          <tr style="background:rgba(255,123,114,0.08)"><td style="color:#ff7b72;font-weight:600">Monte Carlo on Actions</td><td style="color:var(--red)">⛔ Excluded (Actions only)</td><td style="color:var(--red)">Structural: 619% MAPE due to exponential growth + limited data (13 months)</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
-  
-    
-
-    <!-- Data Sources View -->
-  <div id="data-sources-view" style="display:none;">
-    <h2 class="section-title">💾 Data Sources — Canonical Trino Queries</h2>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">All data queried from <strong>Trino</strong> (delta.canonical.* tables) with spam/staff filtering. Date range: May 2025 - May 2026 (13 months).</p>
-
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">Query 1: Repository Creations (Monthly)</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
-      </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
-  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, created_at) <span style="color:#ff7b72">AS</span> month,
-  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_repos
-<span style="color:#ff7b72">FROM</span> delta.canonical.repositories_all
-<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(created_at) = <span style="color:#d2a8ff">DATE</span>(day)
-  <span style="color:#79c0ff">AND</span> is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
-<span style="color:#ff7b72">GROUP BY</span> 1
-<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
-    </div>
-
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">Query 2: Pull Request Merges (Monthly)</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
-      </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
-  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, closed_at) <span style="color:#ff7b72">AS</span> month,
-  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_prs
-<span style="color:#ff7b72">FROM</span> delta.canonical.pull_requests_all
-<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> state = <span style="color:#a5d6ff">'merged'</span>
-  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(closed_at) = <span style="color:#d2a8ff">DATE</span>(day)
-  <span style="color:#79c0ff">AND</span> is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
-  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
-<span style="color:#ff7b72">GROUP BY</span> 1
-<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
-    </div>
-
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">Query 3: Issues Created (Monthly)</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
-      </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
-  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, i.created_at) <span style="color:#ff7b72">AS</span> month,
-  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_issues
-<span style="color:#ff7b72">FROM</span> delta.canonical.issues_all i
-<span style="color:#ff7b72">JOIN</span> delta.canonical.accounts_all a
-  <span style="color:#ff7b72">ON</span> i.author_id = a.id
-  <span style="color:#79c0ff">AND</span> i.day = a.day
-<span style="color:#ff7b72">WHERE</span> i.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> i.day < <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> a.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> a.day < <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(i.created_at) = <span style="color:#d2a8ff">DATE</span>(i.day)
-  <span style="color:#79c0ff">AND</span> a.is_spammy = <span style="color:#ff7b72">FALSE</span>
-  <span style="color:#79c0ff">AND</span> a.is_staff = <span style="color:#ff7b72">FALSE</span>
-<span style="color:#ff7b72">GROUP BY</span> 1
-<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
-    </div>
-
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">Query 4: GitHub Actions Runs (Monthly)</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months · workflow runs proxy</span>
-      </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
-  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">DATE</span>)) <span style="color:#ff7b72">AS</span> month,
-  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(num_unique_workflow_runs <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">BIGINT</span>)) <span style="color:#ff7b72">AS</span> total_workflow_runs
-<span style="color:#ff7b72">FROM</span> delta.canonical.global_actions_usage
-<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">DATE</span>) >= <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">DATE</span>) <  <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> product_name = <span style="color:#a5d6ff">'actions'</span>
-  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
-  <span style="color:#79c0ff">AND</span> is_spammy = <span style="color:#ff7b72">FALSE</span>
-<span style="color:#ff7b72">GROUP BY</span> 1
-<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
-    </div>
-
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">Query 5: GitHub Actions Minutes (Monthly)</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months · actual + billed</span>
-      </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
-  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, usage_month) <span style="color:#ff7b72">AS</span> month,
-  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(raw_quantity <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">BIGINT</span>)) <span style="color:#ff7b72">AS</span> actual_minutes,
-  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(metered_quantity <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">BIGINT</span>)) <span style="color:#ff7b72">AS</span> billed_minutes
-<span style="color:#ff7b72">FROM</span> delta.canonical.global_actions_usage
-<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> usage_month >= <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> usage_month < <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> product_name = <span style="color:#a5d6ff">'actions'</span>
-  <span style="color:#79c0ff">AND</span> unit_of_measure = <span style="color:#a5d6ff">'Minutes'</span>
-  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
-  <span style="color:#79c0ff">AND</span> is_spammy = <span style="color:#ff7b72">FALSE</span>
-<span style="color:#ff7b72">GROUP BY</span> 1
-<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
-    </div>
-
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">Query 6: Commits Created (Monthly)</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
-      </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
-  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, c.created_at) <span style="color:#ff7b72">AS</span> month,
-  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_commits
-<span style="color:#ff7b72">FROM</span> delta.canonical.commits_all c
-<span style="color:#ff7b72">WHERE</span> c.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
-  <span style="color:#79c0ff">AND</span> c.day < <span style="color:#a5d6ff">'2026-06-01'</span>
-  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(c.created_at) = <span style="color:#d2a8ff">DATE</span>(c.day)
-  <span style="color:#79c0ff">AND</span> c.is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
-  <span style="color:#79c0ff">AND</span> c.is_staff_owned = <span style="color:#ff7b72">FALSE</span>
-<span style="color:#ff7b72">GROUP BY</span> 1
-<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
-    </div>
-  </div>
 
 <!-- Info View -->
   <div id="info-view" style="display:none;">
@@ -586,7 +457,6 @@
           <tr><td style="color:#ff6ec7;font-weight:600">Monte Carlo (Custom)</td><td style="color:var(--green)">✅ Active (4/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout</td><td>PRs (12-17%), Commits (26-43%)</td></tr>
           <tr><td style="color:#f0883e;font-weight:600">ExpSmoothing</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Commits (21-26%)</td></tr>
           <tr><td style="color:#d2a8ff;font-weight:600">AutoTheta</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Issues (23-25%)</td></tr>
-          <tr style="background:rgba(255,123,114,0.08)"><td style="color:#ff7b72;font-weight:600">Monte Carlo on Actions</td><td style="color:var(--red)">⛔ Excluded (Actions only)</td><td style="color:var(--red)">Structural: 619% MAPE due to exponential growth + limited data (13 months)</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
@@ -1567,20 +1437,13 @@ let btChart = null;
 
 function switchView(view) {
   currentView = view;
-  document.querySelectorAll('#view-toggle button, [data-view="info"], [data-view="data-sources"]').forEach(btn => {
+  document.querySelectorAll('#view-toggle button, [data-view="info"]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === view);
-  
-  // Ensure data-sources-view is properly shown
-  const dataSourcesView = document.getElementById('data-sources-view');
-  if (dataSourcesView) {
-    dataSourcesView.style.display = view === 'data-sources' ? 'block' : 'none';
-  }
-});
+  });
   document.getElementById('forecast-view').style.display = view === 'forecast' ? '' : 'none';
   document.getElementById('backtest-view').style.display = view === 'backtest' ? '' : 'none';
   document.getElementById('validation-view').style.display = view === 'validation' ? '' : 'none';
   document.getElementById('info-view').style.display = view === 'info' ? '' : 'none';
-  document.getElementById('data-sources-view').style.display = view === 'data-sources' ? '' : 'none';
   if (view === 'backtest') renderBacktest();
   if (view === 'validation') renderValidation();
 }
