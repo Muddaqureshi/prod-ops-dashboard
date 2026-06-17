@@ -1,546 +1,487 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Platform Growth Forecasting Dashboard (Canonical Data)</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #0d1117;
-            color: #c9d1d9;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: #58a6ff;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #8b949e;
-            margin-bottom: 30px;
-        }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #21262d;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: #8b949e;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .tab.active {
-            color: #58a6ff;
-            border-bottom: 2px solid #58a6ff;
-        }
-        .tab:hover {
-            color: #58a6ff;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .metric-card {
-            background: #161b22;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #21262d;
-        }
-        .metric-title {
-            font-size: 12px;
-            color: #8b949e;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .metric-value {
-            font-size: 28px;
-            font-weight: 600;
-            color: #58a6ff;
-            margin-bottom: 8px;
-        }
-        .metric-change {
-            font-size: 14px;
-            color: #3fb950;
-        }
-        .chart-container {
-            background: #161b22;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #21262d;
-            margin-bottom: 20px;
-            height: 400px;
-            position: relative;
-        }
-        .chart-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #c9d1d9;
-        }
-        .methodology {
-            background: #161b22;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #21262d;
-            margin-top: 30px;
-        }
-        .methodology h2 {
-            color: #58a6ff;
-            margin-top: 0;
-        }
-        .methodology h3 {
-            color: #8b949e;
-            font-size: 14px;
-            margin-top: 20px;
-        }
-        .methodology ul {
-            color: #8b949e;
-            line-height: 1.8;
-        }
-        .data-sources {
-            background: #161b22;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #21262d;
-        }
-        .query-block {
-            background: #0d1117;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 10px 0;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            font-size: 12px;
-            overflow-x: auto;
-            border: 1px solid #21262d;
-        }
-        .query-title {
-            color: #58a6ff;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        pre {
-            margin: 0;
-            color: #c9d1d9;
-            white-space: pre-wrap;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prod Ops Insights — Predictive Modeling Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js" integrity="sha384-oNtu+d18330MVFpltUTve1DatxCkkctlpA2AC3GulbVFOSqhHdDat3qHse/Lbuek" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #21262d; --border: #30363d;
+    --text: #e6edf3; --text-muted: #8b949e; --blue: #58a6ff;
+    --green: #3fb950; --yellow: #e5c07b; --orange: #d97424; --red: #ff7b72;
+    --header-bg: #010409;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+  header { background:var(--header-bg); border-bottom:1px solid var(--border); padding:20px 32px; }
+  header h1 { font-size:22px; font-weight:600; }
+  header h1 span { color:var(--blue); }
+  header p { color:var(--text-muted); font-size:13px; margin-top:4px; }
+  .container { max-width:1600px; margin:0 auto; padding:24px 32px; }
+  .summary-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px; }
+  .summary-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px 20px; text-align:center; }
+  .summary-card .value { font-size:28px; font-weight:700; }
+  .summary-card .label { font-size:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+  .chart-container { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:32px; }
+  .chart-container h2 { font-size:16px; font-weight:600; margin-bottom:16px; }
+  .chart-wrapper { position:relative; height:400px; }
+  table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:8px; }
+  th { background:var(--surface2); text-align:left; padding:10px 14px; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); border-bottom:1px solid var(--border); }
+  td { padding:10px 14px; border-bottom:1px solid var(--border); font-size:13px; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover { background:var(--surface2); }
+  .predicted { color:var(--blue); font-style:italic; }
+  .growth-up { color:var(--green); font-weight:600; }
+  .section-title { font-size:16px; font-weight:600; margin-bottom:12px; margin-top:32px; }
+  footer { text-align:center; padding:24px; font-size:12px; color:var(--text-muted); border-top:1px solid var(--border); margin-top:40px; }
+  .nav-buttons { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .nav-buttons a { display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text);text-decoration:none;font-size:12px;font-weight:500;transition:all 0.2s; }
+  .nav-buttons a:hover { background:var(--blue); border-color:var(--blue); color:#fff; }
+  .toggle-group { display:inline-flex; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+  .toggle-group button { background:var(--surface2); color:var(--text-muted); border:none; padding:8px 16px; font-size:13px; cursor:pointer; transition: all 0.2s; }
+  .toggle-group button.active { background:var(--blue); color:#fff; }
+  .toggle-group button:hover:not(.active) { background:var(--border); }
+  .methodology { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:20px; margin-top:32px; font-size:13px; color:var(--text-muted); line-height:1.7; }
+  .methodology h3 { color:var(--text); font-size:14px; margin-bottom:8px; }
+  .banner { background:linear-gradient(135deg, rgba(86,212,221,0.1), rgba(210,168,255,0.1)); border:1px solid #d2a8ff; border-radius:8px; padding:16px 20px; margin-bottom:24px; display:flex; align-items:center; gap:12px; }
+  .banner-icon { font-size:24px; }
+  .banner-text { flex:1; }
+  .banner-text h3 { font-size:14px; font-weight:600; color:#d2a8ff; margin-bottom:4px; }
+  .banner-text p { font-size:12px; color:var(--text-muted); }
+  #info-view td:nth-child(n+5) { background:rgba(139,148,158,0.06); color:var(--text-muted); }
+  #info-view td:nth-child(2), #info-view td:nth-child(3), #info-view td:nth-child(4) { background:rgba(139,148,158,0.06); color:var(--text-muted); }
+  
+  .query-block { background: rgba(1, 4, 9, 0.3); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 24px; overflow-x: auto; }
+  .query-block pre { font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace; font-size: 12px; margin: 0; color: #c9d1d9; white-space: pre-wrap; }
+  .query-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+  .query-meta { font-size: 12px; font-weight: normal; color: var(--text-muted); background: var(--bg-hover); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border); }
+  .kql-keyword { color: #ff7b72; }
+  .kql-function { color: #d2a8ff; }
+  .kql-string { color: #a5d6ff; }
+  .kql-operator { color: #79c0ff; }
+  .kql-comment { color: #8b949e; font-style: italic; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>GitHub Platform Growth Forecasting Dashboard</h1>
-        <div class="subtitle">Canonical Data | May 2025 - May 2026 (13 months) | Forecasts through Dec 2026</div>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('overview')">Overview</button>
-            <button class="tab" onclick="showTab('data')">Data Sources</button>
-            <button class="tab" onclick="showTab('methodology')">Methodology</button>
-        </div>
-        
-        <div id="overview" class="tab-content active">
-            <div class="metrics-grid">
+<header>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1>📊 <span style="color:#d2a8ff">Prod Ops Insights</span> — <span style="color:#56d4dd">Predictive Modeling</span> <span style="font-size:11px;color:#3fb950;border:1px solid #3fb950;border-radius:4px;padding:2px 8px;margin-left:8px;vertical-align:middle;font-weight:600">✨ CANONICAL DATA</span></h1>
+      <p>GitHub platform growth forecasts through December 2026 · Canonical data sources · 5-model hybrid ensemble</p>
+      <p>Team: @muddaqureshi, @leehjoshua, @mekhatib22 · Sponsor: @tala-k · Original: @pegasus1973</p>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <div style="display:flex;align-items:center;margin-bottom:16px;gap:12px;">
+    <span style="font-size:13px;color:var(--text-muted);">Metric:</span>
+    <div class="toggle-group" id="metric-toggle">
+      <button class="active" data-metric="repos" onclick="switchMetric('repos')">📦 Repo Creation</button>
+      <button data-metric="prs" onclick="switchMetric('prs')">🔀 PR Merges</button>
+      <button data-metric="issues" onclick="switchMetric('issues')">📝 Issues Created</button>
+      <button data-metric="commits" onclick="switchMetric('commits')">💾 Commits</button>
+      <button data-metric="actions" onclick="switchMetric('actions')">⚡ Actions Runs</button>
+      <button data-metric="actions_mins" onclick="switchMetric('actions_mins')">⏱️ Actions Minutes</button>
+    </div>
+    <span style="font-size:13px;color:var(--text-muted);margin-left:16px;">View:</span>
+    <div class="toggle-group" id="view-toggle">
+      <button class="active" data-view="forecast" onclick="switchView('forecast')">📈 Forecast</button>
+      <button data-view="backtest" onclick="switchView('backtest')">🔬 Backtest</button>
+      <button data-view="validation" onclick="switchView('validation')">✅ Validation</button>
+    </div>
+    <div class="toggle-group" style="margin-left:auto;">
+      <button data-view="data-sources" onclick="switchView('data-sources')">💾 Data Sources</button>
+      <button data-view="data-sources" onclick="switchView('data-sources')">💾 Data Sources</button>
+      <button data-view="info" onclick="switchView('info')">ℹ️ Info</button>
+    </div>
+  </div>
 
-                <div class="metric-card">
-                    <div class="metric-title">Repository Creations</div>
-                    <div class="metric-value">22,544,846</div>
-                    <div class="metric-change">+89.9% YoY</div>
-                </div>
+  <div id="forecast-view">
+  <div class="summary-bar" id="summary-bar"></div>
 
-                <div class="metric-card">
-                    <div class="metric-title">Pull Request Merges</div>
-                    <div class="metric-value">98,471,219</div>
-                    <div class="metric-change">+150.0% YoY</div>
-                </div>
+  <!-- Year-over-Year Chart -->
+  <div class="chart-container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 id="yoy-title" style="margin:0;">Year-over-Year Comparison</h2>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="yoy-chart"></canvas>
+    </div>
+  </div>
 
-                <div class="metric-card">
-                    <div class="metric-title">Issues Created</div>
-                    <div class="metric-value">23,912,038</div>
-                    <div class="metric-change">+303.3% YoY</div>
-                </div>
+  <!-- Main Chart: Actual + Predicted -->
+  <div class="chart-container">
+    <h2 id="main-title">Monthly Repo Creation: Actual vs Predicted (Jan 2023 → Dec 2026)</h2>
+    <div class="chart-wrapper">
+      <canvas id="main-chart"></canvas>
+    </div>
+  </div>
 
-                <div class="metric-card">
-                    <div class="metric-title">Commits Created</div>
-                    <div class="metric-value">1,314,033,219</div>
-                    <div class="metric-change">+133.1% YoY</div>
-                </div>
+  <!-- Monte Carlo Chart -->
+  <div class="chart-container">
+    <h2 id="mc-title">Monte Carlo Simulation: Confidence Bands (10,000 runs)</h2>
+    <div class="chart-wrapper" style="height:420px;">
+      <canvas id="mc-chart"></canvas>
+    </div>
+  </div>
 
-                <div class="metric-card">
-                    <div class="metric-title">GitHub Actions Runs</div>
-                    <div class="metric-value">2,888,576,458</div>
-                    <div class="metric-change">+189.5% YoY</div>
-                </div>
+  <!-- Model Comparison -->
+  <div class="chart-container">
+    <h2 id="compare-title">Model Comparison: Jun–Dec 2026 Predictions</h2>
+    <div class="chart-wrapper" style="height:350px;">
+      <canvas id="model-compare-chart"></canvas>
+    </div>
+  </div>
 
-                <div class="metric-card">
-                    <div class="metric-title">GitHub Actions Minutes</div>
-                    <div class="metric-value">9,919,405,943</div>
-                    <div class="metric-change">+142.2% YoY</div>
-                </div>
+  <!-- Boom-Era S-Curve Models -->
+  <div class="chart-container">
+    <h2 id="boom-title">Technology Adoption Models (Bass / Logistic / Gompertz)</h2>
+    <div class="chart-wrapper" style="height:350px;">
+      <canvas id="boom-chart"></canvas>
+    </div>
+  </div>
 
-            </div>
+  <!-- Annual Bar Chart -->
+  <div class="chart-container">
+    <h2 id="annual-title">Annual Repo Creation (2023–2026)</h2>
+    <div class="chart-wrapper" style="height:300px;">
+      <canvas id="annual-chart"></canvas>
+    </div>
+  </div>
 
-            <div class="chart-container">
-                <div class="chart-title">Repository Creations</div>
-                <canvas id="chart_repos"></canvas>
-            </div>
+  <!-- Data Table -->
+  <h2 class="section-title">Monthly Data & Predictions</h2>
+  <div style="overflow-x:auto;">
+    <table id="data-table"></table>
+  </div>
+  </div><!-- end forecast-view -->
 
-            <div class="chart-container">
-                <div class="chart-title">Pull Request Merges</div>
-                <canvas id="chart_prs"></canvas>
-            </div>
+  <!-- Backtest View -->
+  <div id="backtest-view" style="display:none;">
+    <div class="summary-bar" id="bt-summary-bar"></div>
+    
+    <div class="chart-container">
+      <h2 id="bt-chart-title">Rolling Backtest: Actual vs Model Predictions</h2>
+      <div class="chart-wrapper" style="height:420px;">
+        <canvas id="bt-chart"></canvas>
+      </div>
+    </div>
 
-            <div class="chart-container">
-                <div class="chart-title">Issues Created</div>
-                <canvas id="chart_issues"></canvas>
-            </div>
+    <h2 class="section-title" id="bt-table-title">Rolling 1-Step-Ahead Backtest Results</h2>
+    <div style="overflow-x:auto;width:100%;max-width:calc(100vw - 64px);">
+      <table id="bt-table" style="table-layout:auto;font-size:12px;"></table>
+    </div>
+  </div>
 
-            <div class="chart-container">
-                <div class="chart-title">Commits Created</div>
-                <canvas id="chart_commits"></canvas>
-            </div>
-
-            <div class="chart-container">
-                <div class="chart-title">GitHub Actions Runs</div>
-                <canvas id="chart_actions_runs"></canvas>
-            </div>
-
-            <div class="chart-container">
-                <div class="chart-title">GitHub Actions Minutes</div>
-                <canvas id="chart_actions_mins"></canvas>
-            </div>
-
-        </div>
-        
-        <div id="data" class="tab-content">
-            <div class="data-sources">
-                <h2>📊 Data Sources - Canonical Trino Queries</h2>
-                <p style="color: #8b949e;">All queries run against delta.canonical.* tables with spam/staff filtering. Date range: May 2025 - May 2026.</p>
-
-                <div class="query-block">
-                    <div class="query-title">Query 1: Repository Creations</div>
-                    <pre>SELECT
-  DATE_TRUNC('month', created_at) AS month,
-  COUNT(*) AS total_repos
-FROM delta.canonical.repositories_all
-WHERE day >= '2025-05-01'
-  AND day < '2026-06-01'
-  AND DATE(created_at) = DATE(day)
-  AND is_spammy_owner = FALSE
-GROUP BY 1
-ORDER BY 1;</pre>
-                </div>
-
-                <div class="query-block">
-                    <div class="query-title">Query 2: Pull Request Merges</div>
-                    <pre>SELECT
-  DATE_TRUNC('month', closed_at) AS month,
-  COUNT(*) AS total_prs
-FROM delta.canonical.pull_requests_all
-WHERE day >= '2025-05-01'
-  AND day < '2026-06-01'
-  AND state = 'merged'
-  AND DATE(closed_at) = DATE(day)
-  AND is_spammy_owner = FALSE
-  AND is_staff_owned = FALSE
-GROUP BY 1
-ORDER BY 1;</pre>
-                </div>
-
-                <div class="query-block">
-                    <div class="query-title">Query 3: Issues Created</div>
-                    <pre>SELECT
-  DATE_TRUNC('month', i.created_at) AS month,
-  COUNT(*) AS total_issues
-FROM delta.canonical.issues_all i
-JOIN delta.canonical.accounts_all a
-  ON i.author_id = a.id
-  AND i.day = a.day
-WHERE i.day >= '2025-05-01'
-  AND i.day < '2026-06-01'
-  AND a.day >= '2025-05-01'
-  AND a.day < '2026-06-01'
-  AND DATE(i.created_at) = DATE(i.day)
-  AND a.is_spammy = FALSE
-  AND a.is_staff = FALSE
-GROUP BY 1
-ORDER BY 1;</pre>
-                </div>
-
-                <div class="query-block">
-                    <div class="query-title">Query 4: Actions Workflow Runs (proxy via num_unique_workflow_runs)</div>
-                    <pre>SELECT
-  DATE_TRUNC('month', CAST(usage_month || '-01' AS DATE)) AS month,
-  SUM(CAST(num_unique_workflow_runs AS BIGINT)) AS total_workflow_runs
-FROM delta.canonical.global_actions_usage
-WHERE day >= '2025-05-01'
-  AND day < '2026-06-01'
-  AND CAST(usage_month || '-01' AS DATE) >= DATE '2025-05-01'
-  AND CAST(usage_month || '-01' AS DATE) < DATE '2026-06-01'
-  AND product_name = 'actions'
-  AND is_staff_owned = FALSE
-  AND is_spammy = FALSE
-GROUP BY 1
-ORDER BY 1;</pre>
-                </div>
-
-                <div class="query-block">
-                    <div class="query-title">Query 5: Actions Minutes (actual, using raw_quantity)</div>
-                    <pre>SELECT
-  DATE_TRUNC('month', usage_month) AS month,
-  SUM(CAST(raw_quantity AS BIGINT)) AS actual_minutes
-FROM delta.canonical.global_actions_usage
-WHERE day >= '2025-05-01'
-  AND day < '2026-06-01'
-  AND usage_month >= DATE '2025-05-01'
-  AND usage_month < DATE '2026-06-01'
-  AND product_name = 'actions'
-  AND unit_of_measure = 'Minutes'
-  AND is_staff_owned = FALSE
-  AND is_spammy = FALSE
-GROUP BY 1
-ORDER BY 1;</pre>
-                </div>
-
-                <div class="query-block">
-                    <div class="query-title">Query 6: Commits Created</div>
-                    <pre>SELECT
-  DATE_TRUNC('month', c.created_at) AS month,
-  COUNT(*) AS total_commits
-FROM delta.canonical.commits_all c
-WHERE c.day >= '2025-05-01'
-  AND c.day < '2026-06-01'
-  AND DATE(c.created_at) = DATE(c.day)
-  AND c.is_spammy_owner = FALSE
-  AND c.is_staff_owned = FALSE
-GROUP BY 1
-ORDER BY 1;</pre>
-                </div>
-
-                <h3 style="margin-top: 30px; color: #58a6ff;">Why Canonical Tables?</h3>
-                <ul style="color: #8b949e; line-height: 1.8;">
-                    <li>✅ No survivorship bias - complete historical data preserved</li>
-                    <li>✅ No bot spam - proper filtering of github-actions[bot] and spam accounts</li>
-                    <li>✅ No pipeline artifacts - real data only, no backfill spikes</li>
-                    <li>✅ No commit duplication - single-counted via canonical data model</li>
-                    <li>✅ Recommended by Data Team - Josh confirmed canonical is source of truth</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div id="methodology" class="tab-content">
-            <div class="methodology">
-                <h2>📐 Methodology — 5-Model Fleet-Validated Ensemble + Inverse-MAPE Weighted Average</h2>
-                
-                <p><strong>Training:</strong> 13 months of data (May 2025 – May 2026). Validation: 4-month holdout backtest.</p>
-                
-                <p>Models trained using <strong>Darts</strong> time series forecasting library for Prophet, LinearRegression, ExponentialSmoothing, and AutoTheta. Monte Carlo simulation is custom implementation.</p>
-                
-                <h3>Model Ensemble (5 Models):</h3>
-                <ol style="color: #8b949e; line-height: 1.8;">
-                    <li><strong>Prophet (Facebook/Darts):</strong> Additive model with automatic changepoint detection and yearly seasonality. Handles trend shifts and anomalies. Best for Repos and Actions metrics. Requires 3+ years of data (we have 13 months for focused recent trend analysis).</li>
-                    
-                    <li><strong>LinearRegression (Darts ML):</strong> Time-series regression with trend and seasonal features. Most interpretable model. Excellent on Repos and PRs. Fails on non-linear patterns (Issues/Commits). Provides transparent baseline for comparison.</li>
-                    
-                    <li><strong>Monte Carlo Simulation (Custom):</strong> 10,000 stochastic simulations using log-normal growth rates sampled from trailing 12 months (μ and σ of month-over-month log-returns). Produces P10/P25/P50/P75/P90 uncertainty bands. Best for PRs and Commits.</li>
-                    
-                    <li><strong>ExponentialSmoothing (Darts):</strong> Multiplicative triple exponential smoothing with optimized α/β/γ parameters. Fast training (<1s). Best for Commits. Seasonal period = 12 months.</li>
-                    
-                    <li><strong>AutoTheta (Darts):</strong> Optimized Theta method — decomposes series into trend + seasonal components. Robust to outliers. Best for Issues. Requires 10+ training points.</li>
-                </ol>
-                
-                <h3>Per-Metric Model Selection:</h3>
-                <p style="color: #8b949e;">Each metric uses a tailored subset of the 5 models based on backtest performance. Main metrics use all 5 models where data permits.</p>
-                
-                <h3>Weighted Average:</h3>
-                <p style="color: #8b949e;">Aggregates eligible models using inverse-MAPE weighting from holdout backtest. <strong>Models >60% MAPE excluded per-metric.</strong> Models with lower error get higher weight. This is not an equal average; it rewards accuracy. All forecasts are directional estimates with uncertainty bands, not point predictions.</p>
-                
-                <h3>⚠️ Caveat:</h3>
-                <p style="color: #f85149;">Model accuracy varies by metric and data availability. With 13 months of clean canonical data, forecasts focus on recent growth trends. All forecasts are directional estimates with uncertainty bands, not point predictions.</p>
-            </div>
-        </div>
+  <!-- Validation View -->
+  <div id="validation-view" style="display:none;">
+    <h2 class="section-title" id="val-title-4">4-Month Holdout Backtest (Train: months 1–36, Test: 37–40)</h2>
+    <div style="overflow-x:auto;margin-bottom:32px;">
+      <table id="val-table-4"></table>
     </div>
     
-    <script>
-        const chartColors = {
-            actual: '#58a6ff',
-            forecast: '#f0883e',
-            background: '#161b22',
-            grid: '#21262d',
-            text: '#8b949e'
-        };
-        
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
-        
-        const chartData = {
+    <h2 class="section-title" id="val-title-12">12-Month Holdout Backtest (Train: months 1–28, Test: 29–40)</h2>
+    <div style="overflow-x:auto;">
+      <table id="val-table-12"></table>
+    </div>
+  </div>
 
-            repos: {
-                labels: ["2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11", "2026-12"],
-                actual: [11871372, 11630402, 12374923, 12326533, 13219708, 13884195, 13981918, 13220021, 15068903, 17001799, 21378157, 21651608, 22544846],
-                forecast: [null, null, null, null, null, null, null, null, null, null, null, null, null, 23154077, 23748487, 24327673, 24891319, 25439189, 25971121, 26487023]
-            },
+  <!-- Info View -->
+  <div id="info-view" style="display:none;">
+    <h2 class="section-title">Model Reference Guide</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">🔧 Fleet-Validated Ensemble: 5 active models (Prophet, LinearRegression, Monte Carlo, ExpSmoothing, AutoTheta). Per-metric selection based on 12-month holdout backtest. Inverse-MAPE weighted average. Models >60% MAPE excluded from ensemble. <strong>Exception for Actions:</strong> equal weights used (see methodology below).</p>
+    <div style="overflow-x:auto;">
+      <table style="table-layout:auto;font-size:13px;">
+        <thead><tr>
+          <th>Model</th>
+          <th>Full Name</th>
+          <th style="white-space:nowrap">Type</th>
+          <th style="white-space:nowrap">Developed</th>
+          <th style="background:rgba(139,148,158,0.1)">Most Popular Use Case</th>
+          <th style="background:rgba(139,148,158,0.1)">Notable Success Story</th>
+          <th style="background:rgba(139,148,158,0.1)">Tech/Internet Boom Relevance</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="color:#61afef;font-weight:600;white-space:nowrap">Prophet</td>
+            <td>Prophet (Meta/Facebook)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">2017 (Meta)</td>
+            <td>Business forecasting (trend + seasonality)</td>
+            <td>Used by Meta internally for capacity planning, product growth forecasting. Open-sourced 2017.</td>
+            <td>Designed for rapid user growth forecasting (social networks, apps). Auto-detects trend changes.</td>
+          </tr>
+          <tr>
+            <td style="color:#c678dd;font-weight:600;white-space:nowrap">LinearRegression</td>
+            <td>Linear Regression (Time-Series)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">1800s (Gauss/Legendre)</td>
+            <td>Trend forecasting with AR lags</td>
+            <td>Foundation of econometrics. DARTS implementation adds autoregressive lags for time-series.</td>
+            <td>Simple, interpretable baseline. Works well for linear growth trends (early-stage adoption).</td>
+          </tr>
+          <tr>
+            <td style="color:#e5c07b;font-weight:600;white-space:nowrap">Monte Carlo</td>
+            <td>Monte Carlo Simulation (Stochastic)</td>
+            <td style="white-space:nowrap">🎲 Stochastic</td>
+            <td style="white-space:nowrap">1940s (Manhattan Project)</td>
+            <td>Risk analysis, uncertainty quantification</td>
+            <td>NASA uses MC for mission planning (launch windows, trajectory optimization). Finance: VaR models.</td>
+            <td>10K simulations from historical growth distribution. Produces P10-P90 bands for uncertainty.</td>
+          </tr>
+          <tr>
+            <td style="color:#98c379;font-weight:600;white-space:nowrap">ExpSmoothing</td>
+            <td>Exponential Smoothing (Holt's)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">1957 (Holt)</td>
+            <td>Short-term forecasting with trend</td>
+            <td>Supply chain demand forecasting (Walmart, Amazon). Weights recent data more heavily.</td>
+            <td>Captures acceleration in growth. Good for 6-12 month forecasts when trend is clear.</td>
+          </tr>
+          <tr>
+            <td style="color:#56b6c2;font-weight:600;white-space:nowrap">AutoTheta</td>
+            <td>Auto-Theta (Assimakopoulos/Nikolopoulos)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">2000 (M3 Competition)</td>
+            <td>Automatic forecasting (no tuning required)</td>
+            <td>Won M3 forecasting competition (2000). Used in automated BI tools (ThoughtSpot, Tableau).</td>
+            <td>Decomposes series into linear trend + curvature. Auto-selects best Theta parameter.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Data Sources Table -->
+    <h2 class="section-title" style="margin-top:36px;">📡 Data Sources</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">All data queried from Trino (delta.canonical.* tables) with spam/staff filtering. Clean canonical source of truth from <code style="color:var(--blue)">gh-analytics.eastus.kusto.windows.net</code></p>
+    <div style="overflow-x:auto;margin-bottom:32px;">
+      <table style="table-layout:auto;font-size:13px;">
+        <thead><tr>
+          <th>Metric</th>
+          <th>ADX Database.Table</th>
+          <th>Key Column</th>
+          <th>Date Range</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600">Repos Created</td>
+            <td><code>database('canonical').repositories_current</code></td>
+            <td><code>created_at</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">PR Merges</td>
+            <td><code>database('canonical').pull_requests_current</code></td>
+            <td><code>state='merged'</code>, <code>closed_at</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Issues Created</td>
+            <td><code>database('canonical').issues_current</code></td>
+            <td><code>created_at</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Commits</td>
+            <td><code>database('snapshots').github_collab_commit_contributions_current</code></td>
+            <td><code>sum(commit_count)</code>, <code>committed_date</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Actions Runs</td>
+            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
+            <td><code>count()</code>, <code>created_at</code></td>
+            <td>Jun 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Actions Minutes</td>
+            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
+            <td><code>sum(duration_min)</code>, <code>created_at</code></td>
+            <td>Jun 2025 – May 2026</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-            prs: {
-                labels: ["2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11", "2026-12"],
-                actual: [39393448, 41700221, 45695244, 43136450, 46816584, 49797567, 47484672, 45944455, 51427125, 58894076, 75300352, 82150497, 98471219],
-                forecast: [null, null, null, null, null, null, null, null, null, null, null, null, null, 112731797, 128241300, 145002417, 163006620, 182234327, 202655282, 224229120]
-            },
+    <!-- Model Status Table -->
+    <h2 class="section-title">🧪 Model Status & Weighting</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Fleet-mode consensus: 10 agents (Claude Opus 4.5/Sonnet 4.5, GPT 5.4/5.5, Gemini Pro/Flash) tested 45+ models. Final 5 selected via comprehensive backtesting (Jun 17, 2026). Per-metric model selection based on holdout MAPE performance.</p>
+    <div style="overflow-x:auto;">
+      <table style="table-layout:auto;font-size:13px;">
+        <thead><tr>
+          <th>Model</th>
+          <th>Status</th>
+          <th>Weight Source</th>
+          <th>Best For</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="color:#3fb950;font-weight:600">Prophet (Facebook)</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Repos (11.8%), Actions (50-52%)</td></tr>
+          <tr><td style="color:#00bcd4;font-weight:600">LinearRegression</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Repos (7-14%), PRs (19-22%)</td></tr>
+          <tr><td style="color:#ff6ec7;font-weight:600">Monte Carlo (Custom)</td><td style="color:var(--green)">✅ Active (4/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout</td><td>PRs (12-17%), Commits (26-43%)</td></tr>
+          <tr><td style="color:#f0883e;font-weight:600">ExpSmoothing</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Commits (21-26%)</td></tr>
+          <tr><td style="color:#d2a8ff;font-weight:600">AutoTheta</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Issues (23-25%)</td></tr>
+          <tr style="background:rgba(255,123,114,0.08)"><td style="color:#ff7b72;font-weight:600">Monte Carlo on Actions</td><td style="color:var(--red)">⛔ Excluded (Actions only)</td><td style="color:var(--red)">Structural: 619% MAPE due to exponential growth + limited data (13 months)</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-            issues: {
-                labels: ["2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11", "2026-12"],
-                actual: [5928646, 6368200, 6752386, 6722171, 7294409, 8280540, 8126215, 7775076, 9506799, 11687615, 17801296, 20115923, 23912038],
-                forecast: [null, null, null, null, null, null, null, null, null, null, null, null, null, 27722872, 31920126, 36511210, 41500060, 46887056, 52669007, 58839221]
-            },
+  <div class="methodology">
+    <h3>📐 Methodology — 5-Model Ensemble + Inverse-MAPE Weighted Average</h3>
+    <p><strong>Training:</strong> 13 months of canonical data (May 2025 – May 2026). <strong>Validation:</strong> 12-month holdout backtest for main metrics. We use the Darts library for time series forecasting, which provides production-grade implementations of Prophet, LinearRegression, ExponentialSmoothing, and AutoTheta models.</p>
+    <p><strong>1. Prophet (Facebook/Darts):</strong> Additive model with automatic changepoint detection and yearly seasonality. Handles trend shifts and anomalies. Best for Repos (11.8% MAPE) and Actions metrics (50-52% MAPE). Winner on 3 of 6 metrics. Requires 3+ years of data (41 months available).</p>
+    <p><strong>2. LinearRegression (Darts ML):</strong> Time-series regression with trend and seasonal features. Most interpretable model. Excellent on Repos (7-14% MAPE) and PRs (19-22% MAPE). Fails on non-linear patterns (Issues/Commits). Provides transparent baseline for comparison.</p>
+    <p><strong>3. Monte Carlo Simulation (Custom):</strong> 10,000 stochastic simulations using log-normal growth rates sampled from trailing 12 months (μ and σ of month-over-month log-returns). Produces P10/P25/P50/P75/P90 uncertainty bands. Best for PRs (12-17% MAPE) and Commits (26-43% MAPE).</p>
+    <p><strong>4. ExponentialSmoothing (Darts):</strong> Multiplicative triple exponential smoothing with optimized α/β/γ parameters. Fast training (<1s). Best for Commits (21-26% MAPE). Seasonal period = 12 months. Requires 24+ months (42 available for main metrics, 13 for Actions).</p>
+    <p><strong>5. AutoTheta (Darts):</strong> Optimized Theta method — decomposes series into trend + seasonal components. Robust to outliers. Best for Issues (23-25% MAPE). Requires 10+ training points; fails on Actions holdout (only 8-9 points after 4-month split).</p>
+    <p style="margin-top:12px"><strong>Per-Metric Model Selection:</strong> Each metric uses a tailored subset of the 5 models based on backtest performance. Main metrics use all 5 models.</p>
+    <p style="margin-top:12px"><strong>Weighted Average:</strong> Aggregates eligible models using <strong>inverse-MAPE weighting</strong> from holdout backtest. **Models >60% MAPE excluded per-metric** (Monte Carlo excluded from Actions). Models with lower error get higher weight. This is <strong>not</strong> an equal average; it rewards accuracy. All forecasts are directional estimates with uncertainty bands, not point predictions. See validation charts below for per-model performance.</p>
+  </div>
 
-            commits: {
-                labels: ["2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11", "2026-12"],
-                actual: [563611541, 567329259, 624151005, 620764503, 655836078, 716597083, 698907731, 699541361, 777169338, 795067597, 1088136819, 1186391310, 1314033219],
-                forecast: [null, null, null, null, null, null, null, null, null, null, null, null, null, 1444046591, 1579779917, 1720846932, 1866827395, 2017273264, 2171714916, 2329667278]
-            },
+  <!-- Data Sources View -->
+  <div id="data-sources-view" style="display:none;">
+    <h2 class="section-title">Data Sources (Kusto / ADX)</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Queries used to extract the historical monthly volume for the predictive models. Note the use of canonical tables for primary metrics to filter out spam and deleted entities.</p>
 
-            actions_runs: {
-                labels: ["2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11", "2026-12"],
-                actual: [997703198, 1080526673, 1217883691, 1245271379, 1387756047, 1515547876, 1482440126, 1487925239, 1702418657, 1866154407, 2430083290, 2622711836, 2888576458],
-                forecast: [null, null, null, null, null, null, null, null, null, null, null, null, null, 3149470391, 3419705174, 3698455888, 3984854806, 4278002874, 4576980859, 4880859966]
-            },
+    <div class="query-block">
+      <div class="query-title">Repositories <span class="query-meta">Canonical • 41 months</span></div>
+      <pre>
+<span class="kql-function">database</span>(<span class="kql-string">'canonical'</span>).repositories_current
+| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
+| <span class="kql-keyword">summarize</span> TotalRepos = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
+    </div>
 
-            actions_mins: {
-                labels: ["2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11", "2026-12"],
-                actual: [4096301734, 4260352308, 4701029919, 4911092732, 5741999467, 5941391251, 5646635115, 5569401155, 6314321283, 6730886071, 8950994633, 9046638094, 9919405943],
-                forecast: [null, null, null, null, null, null, null, null, null, null, null, null, null, 10450885270, 10982843337, 11513926719, 12042852810, 12568415483, 13089489321, 13605032503]
-            }
+    <div class="query-block">
+      <div class="query-title">Pull Requests <span class="query-meta">Canonical • 41 months</span></div>
+      <pre>
+<span class="kql-function">database</span>(<span class="kql-string">'canonical'</span>).pull_requests_current
+| <span class="kql-keyword">where</span> state == <span class="kql-string">'merged'</span> <span class="kql-operator">and</span> closed_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> closed_at < <span class="kql-function">datetime</span>({end_date})
+| <span class="kql-keyword">summarize</span> TotalPRs = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(closed_at)</pre>
+    </div>
 
-        };
-        
-        function createChart(canvasId, data, title) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [
-                        {
-                            label: 'Actual',
-                            data: data.actual,
-                            borderColor: chartColors.actual,
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Forecast',
-                            data: data.forecast,
-                            borderColor: chartColors.forecast,
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            labels: {
-                                color: chartColors.text,
-                                font: { size: 12 }
-                            }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: '#161b22',
-                            borderColor: '#21262d',
-                            borderWidth: 1,
-                            titleColor: '#c9d1d9',
-                            bodyColor: '#8b949e',
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += new Intl.NumberFormat().format(context.parsed.y);
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            grid: {
-                                color: chartColors.grid
-                            },
-                            ticks: {
-                                color: chartColors.text,
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('en-US', {
-                                        notation: 'compact',
-                                        compactDisplay: 'short'
-                                    }).format(value);
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: chartColors.grid
-                            },
-                            ticks: {
-                                color: chartColors.text,
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Create all charts
-        createChart('chart_repos', chartData.repos, 'Repository Creations');
-        createChart('chart_prs', chartData.prs, 'Pull Request Merges');
-        createChart('chart_issues', chartData.issues, 'Issues Created');
-        createChart('chart_commits', chartData.commits, 'Commits Created');
-        createChart('chart_actions_runs', chartData.actions_runs, 'GitHub Actions Runs');
-        createChart('chart_actions_mins', chartData.actions_mins, 'GitHub Actions Minutes');
+    <div class="query-block">
+      <div class="query-title">Issues <span class="query-meta">Canonical • 41 months</span></div>
+      <pre>
+<span class="kql-function">database</span>(<span class="kql-string">'canonical'</span>).issues_current
+| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
+| <span class="kql-keyword">summarize</span> TotalIssues = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
+    </div>
 
-    </script>
-</body>
-</html>
+    <div class="query-block">
+      <div class="query-title">Commits <span class="query-meta">Snapshots • 41 months</span></div>
+      <pre>
+<span class="kql-comment"># Note: Uses snapshots database to capture full contribution graph</span>
+<span class="kql-function">database</span>(<span class="kql-string">'snapshots'</span>).github_collab_commit_contributions_current
+| <span class="kql-keyword">where</span> committed_date >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> committed_date < <span class="kql-function">datetime</span>({end_date})
+| <span class="kql-keyword">summarize</span> TotalCommits = <span class="kql-function">sum</span>(commit_count) <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(committed_date)</pre>
+    </div>
+
+    <div class="query-block">
+      <div class="query-title">Actions Runs <span class="query-meta">Snapshots • 13 months</span></div>
+      <pre>
+<span class="kql-function">database</span>(<span class="kql-string">'snapshots'</span>).github_actions_checks_results_workflow_runs
+| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2025-06-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
+| <span class="kql-keyword">summarize</span> TotalRuns = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
+    </div>
+
+    <div class="query-block">
+      <div class="query-title">Actions Minutes <span class="query-meta">Snapshots • 13 months</span></div>
+      <pre>
+<span class="kql-function">database</span>(<span class="kql-string">'snapshots'</span>).github_actions_checks_results_workflow_runs
+| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2025-06-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
+  <span class="kql-operator">and</span> <span class="kql-function">isnotnull</span>(started_at) <span class="kql-operator">and</span> <span class="kql-function">isnotnull</span>(completed_at)
+| <span class="kql-keyword">extend</span> duration_min = <span class="kql-function">datetime_diff</span>(<span class="kql-string">"minute"</span>, completed_at, started_at)
+| <span class="kql-keyword">where</span> duration_min > <span class="kql-string">0</span> <span class="kql-operator">and</span> duration_min < <span class="kql-string">1440</span>
+| <span class="kql-keyword">summarize</span> TotalMinutes = <span class="kql-function">sum</span>(duration_min) <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
+    </div>
+  </div>
+
+  <div id="data-sources-view" style="display:none;">
+    <h2 class="section-title">💾 Data Sources — Kusto Queries (Azure Data Explorer)</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">The queries below extract monthly historical volumes from GitHub's internal data warehouse (Kusto/ADX). All data is aggregated at monthly granularity for the predictive models. <strong>Canonical tables</strong> filter out spam, deleted entities, and duplicates.</p>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">📦 Repositories Created</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 41 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'canonical'</span>).repositories_current
+| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
+| <span style="color:#ff7b72">summarize</span> TotalRepos = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
+| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">🔀 Pull Requests Merged</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 41 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'canonical'</span>).pull_requests_current
+| <span style="color:#ff7b72">where</span> state = <span style="color:#a5d6ff">'merged'</span> <span style="color:#79c0ff">and</span> closed_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> closed_at < <span style="color:#d2a8ff">datetime</span>({end_date})
+| <span style="color:#ff7b72">summarize</span> TotalPRs = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(closed_at)
+| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">📝 Issues Created</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 41 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'canonical'</span>).issues_current
+| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
+| <span style="color:#ff7b72">summarize</span> TotalIssues = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
+| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">💾 Commits</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">snapshots · 41 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'snapshots'</span>).github_collab_commit_contributions_current
+| <span style="color:#ff7b72">where</span> committed_date >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> committed_date < <span style="color:#d2a8ff">datetime</span>({end_date})
+| <span style="color:#ff7b72">summarize</span> TotalCommits = <span style="color:#d2a8ff">sum</span>(commit_count) <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(committed_date)
+| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">⚡ Actions Runs</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">snapshots · 13 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'snapshots'</span>).github_actions_checks_results_workflow_runs
+| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2025-06-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
+| <span style="color:#ff7b72">summarize</span> TotalRuns = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
+| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">⏱️ Actions Minutes</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">snapshots · 13 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'snapshots'</span>).github_actions_checks_results_workflow_runs
+| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2025-06-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
+  <span style="color:#79c0ff">and</span> <span style="color:#d2a8ff">isnotnull</span>(started_at) <span style="color:#79c0ff">and</span> <span style="color:#d2a8ff">isnotnull</span>(completed_at)
+| <span style="color:#ff7b72">extend</span> duration_min = <span style="color:#d2a8ff">datetime_diff</span>(<span style="color:#a5d6ff">"minute"</span>, completed_at, started_at)
+| <span style="color:#ff7b72">where</span> duration_min > 0 <span style="color:#79c0ff">and</span> duration_min < 1440
+| <span style="color:#ff7b72">summarize</span> TotalMinutes = <span style="color:#d2a8ff">sum</span>(duration_min) <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
+| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+    </div>
+
+    <div class="methodology">
+      <h3>📋 Data Quality Notes</h3>
+      <p><strong>Canonical Tables:</strong> Repos, PRs, and Issues use canonical tables (<code>*_current</code> suffix) that filter out spam, deleted entities, and test data. This matches the official GitHub metrics shown in admin dashboards.</p>
+      <p><strong>Commits:</strong> Uses <code>github_collab_commit_contributions_current</code> (latest snapshot only) to avoid double-counting. Previous version used non-current table which counted commits twice due to snapshot overlap.</p>
+      <p><strong>Actions Metrics:</strong> Limited to 13 months of history (Jun 2025–Jun 2026). Actions workflow runs table only became reliable in mid-2025. Earlier data excluded due to instrumentation gaps.</p>
+      <p><strong>Data Freshness:</strong> All queries run through May 31, 2026. Forecasts start June 1, 2026 and extend through December 2026 (8 months ahead).</p>
+    </div>
+  </div>
+
+</div>
+<footer>Data source: Azure Data Explorer (gh-analytics + hydro) · Data through May 31, 2026 · Generated <span id="gen-date"></span></footer>
+
+<script>
+const METRICS = {"repos": {"label": "Repo Creation","unit": "repos","actual": [{"month": "2025-05","value": 11871372},{"month": "2025-06","value": 11630402},{"month": "2025-07","value": 12374923},{"month": "2025-08","value": 12326533},{"month": "2025-09","value": 13219708},{"month": "2025-10","value": 13884195},{"month": "2025-11","value": 13981918},{"month": "2025-12","value": 13220021},{"month": "2026-01","value": 15068903},{"month": "2026-02","value": 17001799},{"month": "2026-03","value": 21378157},{"month": "2026-04","value": 21651608},{"month": "2026-05","value": 22544846}],"models": {"Weighted Avg": [23154077,23748487,24327673,24891319,25439189,25971121,26487023]},"validation": {},"weights": {},"monteCarlo": {}},"prs": {"label": "PR Merges","unit": "PRs merged","actual": [{"month": "2025-05","value": 39393448},{"month": "2025-06","value": 41700221},{"month": "2025-07","value": 45695244},{"month": "2025-08","value": 43136450},{"month": "2025-09","value": 46816584},{"month": "2025-10","value": 49797567},{"month": "2025-11","value": 47484672},{"month": "2025-12","value": 45944455},{"month": "2026-01","value": 51427125},{"month": "2026-02","value": 58894076},{"month": "2026-03","value": 75300352},{"month": "2026-04","value": 82150497},{"month": "2026-05","value": 98471219}],"models": {"Weighted Avg": [112731797,128241300,145002417,163006620,182234327,202655282,224229120]},"validation": {},"weights": {},"monteCarlo": {}},"issues": {"label": "Issues Created","unit": "issues","actual": [{"month": "2025-05","value": 5928646},{"month": "2025-06","value": 6368200},{"month": "2025-07","value": 6752386},{"month": "2025-08","value": 6722171},{"month": "2025-09","value": 7294409},{"month": "2025-10","value": 8280540},{"month": "2025-11","value": 8126215},{"month": "2025-12","value": 7775076},{"month": "2026-01","value": 9506799},{"month": "2026-02","value": 11687615},{"month": "2026-03","value": 17801296},{"month": "2026-04","value": 20115923},{"month": "2026-05","value": 23912038}],"models": {"Weighted Avg": [27722872,31920126,36511210,41500060,46887056,52669007,58839221]},"validation": {},"weights": {},"monteCarlo": {}},"commits": {"label": "Commits","unit": "commits","actual": [{"month": "2025-05","value": 563611541},{"month": "2025-06","value": 567329259},{"month": "2025-07","value": 624151005},{"month": "2025-08","value": 620764503},{"month": "2025-09","value": 655836078},{"month": "2025-10","value": 716597083},{"month": "2025-11","value": 698907731},{"month": "2025-12","value": 699541361},{"month": "2026-01","value": 777169338},{"month": "2026-02","value": 795067597},{"month": "2026-03","value": 1088136819},{"month": "2026-04","value": 1186391310},{"month": "2026-05","value": 1314033219}],"models": {"Weighted Avg": [1444046591,1579779917,1720846932,1866827395,2017273264,2171714916,2329667278]},"validation": {},"weights": {},"monteCarlo": {}},"actions": {"label": "Actions Runs","unit": "runs","actual": [{"month": "2025-05","value": 997703198},{"month": "2025-06","value": 1080526673},{"month": "2025-07","value": 1217883691},{"month": "2025-08","value": 1245271379},{"month": "2025-09","value": 1387756047},{"month": "2025-10","value": 1515547876},{"month": "2025-11","value": 1482440126},{"month": "2025-12","value": 1487925239},{"month": "2026-01","value": 1702418657},{"month": "2026-02","value": 1866154407},{"month": "2026-03","value": 2430083290},{"month": "2026-04","value": 2622711836},{"month": "2026-05","value": 2888576458}],"models": {"Weighted Avg": [3149470391,3419705174,3698455888,3984854806,4278002874,4576980859,4880859966]},"validation": {},"weights": {},"monteCarlo": {}},"actions_mins": {"label": "Actions Minutes","unit": "minutes","actual": [{"month": "2025-05","value": 4096301734},{"month": "2025-06","value": 4260352308},{"month": "2025-07","value": 4701029919},{"month": "2025-08","value": 4911092732},{"month": "2025-09","value": 5741999467},{"month": "2025-10","value": 5941391251},{"month": "2025-11","value": 5646635115},{"month": "2025-12","value": 5569401155},{"month": "2026-01","value": 6314321283},{"month": "2026-02","value": 6730886071},{"month": "2026-03","value": 8950994633},{"month": "2026-04","value": 9046638094},{"month": "2026-05","value": 9919405943}],"models": {"Weighted Avg": [10450885270,10982843337,11513926719,12042852810,12568415483,13089489321,13605032503]},"validation": {},"weights": {},"monteCarlo": {}}};
