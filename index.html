@@ -326,6 +326,271 @@
       </table>
     </div>
   
+    
+
+    <!-- Data Sources View -->
+  <div id="data-sources-view" style="display:none;">
+    <h2 class="section-title">💾 Data Sources — Canonical Trino Queries</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">All data queried from <strong>Trino</strong> (delta.canonical.* tables) with spam/staff filtering. Date range: May 2025 - May 2026 (13 months).</p>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">Query 1: Repository Creations (Monthly)</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, created_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_repos
+<span style="color:#ff7b72">FROM</span> delta.canonical.repositories_all
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(created_at) = <span style="color:#d2a8ff">DATE</span>(day)
+  <span style="color:#79c0ff">AND</span> is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">Query 2: Pull Request Merges (Monthly)</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, closed_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_prs
+<span style="color:#ff7b72">FROM</span> delta.canonical.pull_requests_all
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> state = <span style="color:#a5d6ff">'merged'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(closed_at) = <span style="color:#d2a8ff">DATE</span>(day)
+  <span style="color:#79c0ff">AND</span> is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">Query 3: Issues Created (Monthly)</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, i.created_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_issues
+<span style="color:#ff7b72">FROM</span> delta.canonical.issues_all i
+<span style="color:#ff7b72">JOIN</span> delta.canonical.accounts_all a
+  <span style="color:#ff7b72">ON</span> i.author_id = a.id
+  <span style="color:#79c0ff">AND</span> i.day = a.day
+<span style="color:#ff7b72">WHERE</span> i.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> i.day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> a.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> a.day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(i.created_at) = <span style="color:#d2a8ff">DATE</span>(i.day)
+  <span style="color:#79c0ff">AND</span> a.is_spammy = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> a.is_staff = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">Query 4: GitHub Actions Runs (Monthly)</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months · workflow runs proxy</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">DATE</span>)) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(num_unique_workflow_runs <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">BIGINT</span>)) <span style="color:#ff7b72">AS</span> total_workflow_runs
+<span style="color:#ff7b72">FROM</span> delta.canonical.global_actions_usage
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">DATE</span>) >= <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">DATE</span>) <  <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> product_name = <span style="color:#a5d6ff">'actions'</span>
+  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> is_spammy = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">Query 5: GitHub Actions Minutes (Monthly)</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months · actual + billed</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, usage_month) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(raw_quantity <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">BIGINT</span>)) <span style="color:#ff7b72">AS</span> actual_minutes,
+  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(metered_quantity <span style="color:#ff7b72">AS</span> <span style="color:#d2a8ff">BIGINT</span>)) <span style="color:#ff7b72">AS</span> billed_minutes
+<span style="color:#ff7b72">FROM</span> delta.canonical.global_actions_usage
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> usage_month >= <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> usage_month < <span style="color:#d2a8ff">DATE</span> <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> product_name = <span style="color:#a5d6ff">'actions'</span>
+  <span style="color:#79c0ff">AND</span> unit_of_measure = <span style="color:#a5d6ff">'Minutes'</span>
+  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> is_spammy = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:600;">Query 6: Commits Created (Monthly)</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">13 months</span>
+      </div>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, c.created_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_commits
+<span style="color:#ff7b72">FROM</span> delta.canonical.commits_all c
+<span style="color:#ff7b72">WHERE</span> c.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> c.day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(c.created_at) = <span style="color:#d2a8ff">DATE</span>(c.day)
+  <span style="color:#79c0ff">AND</span> c.is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> c.is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
+    </div>
+  </div>
+
+<!-- Info View -->
+  <div id="info-view" style="display:none;">
+    <h2 class="section-title">Model Reference Guide</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">🔧 Fleet-Validated Ensemble: 5 active models (Prophet, LinearRegression, Monte Carlo, ExpSmoothing, AutoTheta). Per-metric selection based on 12-month holdout backtest. Inverse-MAPE weighted average. Models >60% MAPE excluded from ensemble. <strong>Exception for Actions:</strong> equal weights used (see methodology below).</p>
+    <div style="overflow-x:auto;">
+      <table style="table-layout:auto;font-size:13px;">
+        <thead><tr>
+          <th>Model</th>
+          <th>Full Name</th>
+          <th style="white-space:nowrap">Type</th>
+          <th style="white-space:nowrap">Developed</th>
+          <th style="background:rgba(139,148,158,0.1)">Most Popular Use Case</th>
+          <th style="background:rgba(139,148,158,0.1)">Notable Success Story</th>
+          <th style="background:rgba(139,148,158,0.1)">Tech/Internet Boom Relevance</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="color:#61afef;font-weight:600;white-space:nowrap">Prophet</td>
+            <td>Prophet (Meta/Facebook)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">2017 (Meta)</td>
+            <td>Business forecasting (trend + seasonality)</td>
+            <td>Used by Meta internally for capacity planning, product growth forecasting. Open-sourced 2017.</td>
+            <td>Designed for rapid user growth forecasting (social networks, apps). Auto-detects trend changes.</td>
+          </tr>
+          <tr>
+            <td style="color:#c678dd;font-weight:600;white-space:nowrap">LinearRegression</td>
+            <td>Linear Regression (Time-Series)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">1800s (Gauss/Legendre)</td>
+            <td>Trend forecasting with AR lags</td>
+            <td>Foundation of econometrics. DARTS implementation adds autoregressive lags for time-series.</td>
+            <td>Simple, interpretable baseline. Works well for linear growth trends (early-stage adoption).</td>
+          </tr>
+          <tr>
+            <td style="color:#e5c07b;font-weight:600;white-space:nowrap">Monte Carlo</td>
+            <td>Monte Carlo Simulation (Stochastic)</td>
+            <td style="white-space:nowrap">🎲 Stochastic</td>
+            <td style="white-space:nowrap">1940s (Manhattan Project)</td>
+            <td>Risk analysis, uncertainty quantification</td>
+            <td>NASA uses MC for mission planning (launch windows, trajectory optimization). Finance: VaR models.</td>
+            <td>10K simulations from historical growth distribution. Produces P10-P90 bands for uncertainty.</td>
+          </tr>
+          <tr>
+            <td style="color:#98c379;font-weight:600;white-space:nowrap">ExpSmoothing</td>
+            <td>Exponential Smoothing (Holt's)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">1957 (Holt)</td>
+            <td>Short-term forecasting with trend</td>
+            <td>Supply chain demand forecasting (Walmart, Amazon). Weights recent data more heavily.</td>
+            <td>Captures acceleration in growth. Good for 6-12 month forecasts when trend is clear.</td>
+          </tr>
+          <tr>
+            <td style="color:#56b6c2;font-weight:600;white-space:nowrap">AutoTheta</td>
+            <td>Auto-Theta (Assimakopoulos/Nikolopoulos)</td>
+            <td style="white-space:nowrap">📊 Time-Series</td>
+            <td style="white-space:nowrap">2000 (M3 Competition)</td>
+            <td>Automatic forecasting (no tuning required)</td>
+            <td>Won M3 forecasting competition (2000). Used in automated BI tools (ThoughtSpot, Tableau).</td>
+            <td>Decomposes series into linear trend + curvature. Auto-selects best Theta parameter.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Data Sources Table -->
+    <h2 class="section-title" style="margin-top:36px;">📡 Data Sources</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">All data queried from Trino (delta.canonical.* tables) cluster <code style="color:var(--blue)">gh-analytics.eastus.kusto.windows.net</code></p>
+    <div style="overflow-x:auto;margin-bottom:32px;">
+      <table style="table-layout:auto;font-size:13px;">
+        <thead><tr>
+          <th>Metric</th>
+          <th>ADX Database.Table</th>
+          <th>Key Column</th>
+          <th>Date Range</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600">Repos Created</td>
+            <td><code>database('canonical').repositories_current</code></td>
+            <td><code>created_at</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">PR Merges</td>
+            <td><code>database('canonical').pull_requests_current</code></td>
+            <td><code>state='merged'</code>, <code>closed_at</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Issues Created</td>
+            <td><code>database('canonical').issues_current</code></td>
+            <td><code>created_at</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Commits</td>
+            <td><code>database('snapshots').github_collab_commit_contributions_current</code></td>
+            <td><code>sum(commit_count)</code>, <code>committed_date</code></td>
+            <td>May 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Actions Runs</td>
+            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
+            <td><code>count()</code>, <code>created_at</code></td>
+            <td>Jun 2025 – May 2026</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">Actions Minutes</td>
+            <td><code>database('snapshots').github_actions_checks_results_workflow_runs</code></td>
+            <td><code>sum(duration_min)</code>, <code>created_at</code></td>
+            <td>Jun 2025 – May 2026</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Model Status Table -->
+    <h2 class="section-title">🧪 Model Status & Weighting</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Fleet-mode consensus: 10 agents (Claude Opus 4.5/Sonnet 4.5, GPT 5.4/5.5, Gemini Pro/Flash) tested 45+ models. Final 5 selected via comprehensive backtesting (Jun 17, 2026). Per-metric model selection based on holdout MAPE performance.</p>
+    <div style="overflow-x:auto;">
+      <table style="table-layout:auto;font-size:13px;">
+        <thead><tr>
+          <th>Model</th>
+          <th>Status</th>
+          <th>Weight Source</th>
+          <th>Best For</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="color:#3fb950;font-weight:600">Prophet (Facebook)</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Repos (11.8%), Actions (50-52%)</td></tr>
+          <tr><td style="color:#00bcd4;font-weight:600">LinearRegression</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Repos (7-14%), PRs (19-22%)</td></tr>
+          <tr><td style="color:#ff6ec7;font-weight:600">Monte Carlo (Custom)</td><td style="color:var(--green)">✅ Active (4/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout</td><td>PRs (12-17%), Commits (26-43%)</td></tr>
+          <tr><td style="color:#f0883e;font-weight:600">ExpSmoothing</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Commits (21-26%)</td></tr>
+          <tr><td style="color:#d2a8ff;font-weight:600">AutoTheta</td><td style="color:var(--green)">✅ Active (5/6 metrics)</td><td>Inverse-MAPE from 12-mo holdout (4-mo for Actions)</td><td>Issues (23-25%)</td></tr>
+          <tr style="background:rgba(255,123,114,0.08)"><td style="color:#ff7b72;font-weight:600">Monte Carlo on Actions</td><td style="color:var(--red)">⛔ Excluded (Actions only)</td><td style="color:var(--red)">Structural: 619% MAPE due to exponential growth + limited data (13 months)</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  
     <div style="background:rgba(255,123,114,0.1);border:1px solid #ff7b72;border-radius:8px;padding:16px;margin-top:24px;">
       <h3 style="color:#ff7b72;font-size:14px;margin-bottom:8px;">⚠️ Important Limitations</h3>
       <ul style="color:var(--text-muted);font-size:13px;line-height:1.8;margin:0;padding-left:20px;">
@@ -598,9 +863,9 @@ function renderAll() {
   }).reduce((s,v) => s + v, 0);
   const actual2025_jun_dec = ACTUAL_DATA.filter(d => d.month >= "2025-06" && d.month <= "2025-12").reduce((s,d) => s + d.value, 0);
   const total2025 = actual2025_jun_dec;
-  // Calculate YoY: Jun-Dec 2026 vs Jun-Dec 2025
+  // Calculate YoY: Jun-Dec 2026 PREDICTED vs Jun-Dec 2025 ACTUAL
   const jun_dec_2025 = ACTUAL_DATA.filter(d => d.month >= "2025-06" && d.month <= "2025-12").reduce((s,d) => s + d.value, 0);
-  const jun_dec_2026 = (actual2026 - (ACTUAL_DATA.find(d => d.month === "2026-05")?.value || 0)) + predicted2026;
+  const jun_dec_2026 = predicted2026;  // Already Jun-Dec predicted only
   const growthVs2025 = ((jun_dec_2026 / jun_dec_2025 - 1) * 100).toFixed(1);
 
   // Compute trailing 4-month MoM from actuals
