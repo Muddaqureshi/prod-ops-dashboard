@@ -340,143 +340,136 @@
     <p style="margin-top:12px"><strong>Weighted Average:</strong> Aggregates eligible models using <strong>inverse-MAPE weighting</strong> from holdout backtest. **Models >60% MAPE excluded per-metric** (Monte Carlo excluded from Actions). Models with lower error get higher weight. This is <strong>not</strong> an equal average; it rewards accuracy. All forecasts are directional estimates with uncertainty bands, not point predictions. See validation charts below for per-model performance.</p>
   </div>
 
-  <!-- Data Sources View -->
+    <!-- Data Sources View -->
   <div id="data-sources-view" style="display:none;">
-    <h2 class="section-title">Data Sources (Kusto / ADX)</h2>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Queries used to extract the historical monthly volume for the predictive models. Note the use of canonical tables for primary metrics to filter out spam and deleted entities.</p>
-
-    <div class="query-block">
-      <div class="query-title">Repositories <span class="query-meta">Canonical • 41 months</span></div>
-      <pre>
-<span class="kql-function">database</span>(<span class="kql-string">'canonical'</span>).repositories_current
-| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
-| <span class="kql-keyword">summarize</span> TotalRepos = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
-    </div>
-
-    <div class="query-block">
-      <div class="query-title">Pull Requests <span class="query-meta">Canonical • 41 months</span></div>
-      <pre>
-<span class="kql-function">database</span>(<span class="kql-string">'canonical'</span>).pull_requests_current
-| <span class="kql-keyword">where</span> state == <span class="kql-string">'merged'</span> <span class="kql-operator">and</span> closed_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> closed_at < <span class="kql-function">datetime</span>({end_date})
-| <span class="kql-keyword">summarize</span> TotalPRs = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(closed_at)</pre>
-    </div>
-
-    <div class="query-block">
-      <div class="query-title">Issues <span class="query-meta">Canonical • 41 months</span></div>
-      <pre>
-<span class="kql-function">database</span>(<span class="kql-string">'canonical'</span>).issues_current
-| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
-| <span class="kql-keyword">summarize</span> TotalIssues = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
-    </div>
-
-    <div class="query-block">
-      <div class="query-title">Commits <span class="query-meta">Snapshots • 41 months</span></div>
-      <pre>
-<span class="kql-comment"># Note: Uses snapshots database to capture full contribution graph</span>
-<span class="kql-function">database</span>(<span class="kql-string">'snapshots'</span>).github_collab_commit_contributions_current
-| <span class="kql-keyword">where</span> committed_date >= <span class="kql-function">datetime</span>(<span class="kql-string">2023-01-01</span>) <span class="kql-operator">and</span> committed_date < <span class="kql-function">datetime</span>({end_date})
-| <span class="kql-keyword">summarize</span> TotalCommits = <span class="kql-function">sum</span>(commit_count) <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(committed_date)</pre>
-    </div>
-
-    <div class="query-block">
-      <div class="query-title">Actions Runs <span class="query-meta">Snapshots • 13 months</span></div>
-      <pre>
-<span class="kql-function">database</span>(<span class="kql-string">'snapshots'</span>).github_actions_checks_results_workflow_runs
-| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2025-06-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
-| <span class="kql-keyword">summarize</span> TotalRuns = <span class="kql-function">count</span>() <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
-    </div>
-
-    <div class="query-block">
-      <div class="query-title">Actions Minutes <span class="query-meta">Snapshots • 13 months</span></div>
-      <pre>
-<span class="kql-function">database</span>(<span class="kql-string">'snapshots'</span>).github_actions_checks_results_workflow_runs
-| <span class="kql-keyword">where</span> created_at >= <span class="kql-function">datetime</span>(<span class="kql-string">2025-06-01</span>) <span class="kql-operator">and</span> created_at < <span class="kql-function">datetime</span>({end_date})
-  <span class="kql-operator">and</span> <span class="kql-function">isnotnull</span>(started_at) <span class="kql-operator">and</span> <span class="kql-function">isnotnull</span>(completed_at)
-| <span class="kql-keyword">extend</span> duration_min = <span class="kql-function">datetime_diff</span>(<span class="kql-string">"minute"</span>, completed_at, started_at)
-| <span class="kql-keyword">where</span> duration_min > <span class="kql-string">0</span> <span class="kql-operator">and</span> duration_min < <span class="kql-string">1440</span>
-| <span class="kql-keyword">summarize</span> TotalMinutes = <span class="kql-function">sum</span>(duration_min) <span class="kql-keyword">by</span> Month = <span class="kql-function">startofmonth</span>(created_at)</pre>
-    </div>
-  </div>
-
-  <div id="data-sources-view" style="display:none;">
-    <h2 class="section-title">💾 Data Sources — Kusto Queries (Azure Data Explorer)</h2>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">The queries below extract monthly historical volumes from GitHub's internal data warehouse (Kusto/ADX). All data is aggregated at monthly granularity for the predictive models. <strong>Canonical tables</strong> filter out spam, deleted entities, and duplicates.</p>
+    <h2 class="section-title">💾 Data Sources — Canonical Trino Queries</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">All data queried from <strong>Trino</strong> (delta.canonical.* tables) with spam/staff filtering. Clean canonical source of truth for May 2025 - May 2026 (13 months).</p>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <span style="font-size:14px;font-weight:600;">📦 Repositories Created</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 41 months</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 13 months</span>
       </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'canonical'</span>).repositories_current
-| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
-| <span style="color:#ff7b72">summarize</span> TotalRepos = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
-| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, created_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_repos
+<span style="color:#ff7b72">FROM</span> delta.canonical.repositories_all
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(created_at) = <span style="color:#d2a8ff">DATE</span>(day)
+  <span style="color:#79c0ff">AND</span> is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
     </div>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <span style="font-size:14px;font-weight:600;">🔀 Pull Requests Merged</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 41 months</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 13 months</span>
       </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'canonical'</span>).pull_requests_current
-| <span style="color:#ff7b72">where</span> state = <span style="color:#a5d6ff">'merged'</span> <span style="color:#79c0ff">and</span> closed_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> closed_at < <span style="color:#d2a8ff">datetime</span>({end_date})
-| <span style="color:#ff7b72">summarize</span> TotalPRs = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(closed_at)
-| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, closed_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_prs
+<span style="color:#ff7b72">FROM</span> delta.canonical.pull_requests_all
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> state = <span style="color:#a5d6ff">'merged'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(closed_at) = <span style="color:#d2a8ff">DATE</span>(day)
+  <span style="color:#79c0ff">AND</span> is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
     </div>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <span style="font-size:14px;font-weight:600;">📝 Issues Created</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 41 months</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 13 months</span>
       </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'canonical'</span>).issues_current
-| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
-| <span style="color:#ff7b72">summarize</span> TotalIssues = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
-| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, i.created_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_issues
+<span style="color:#ff7b72">FROM</span> delta.canonical.issues_all i
+<span style="color:#ff7b72">JOIN</span> delta.canonical.accounts_all a
+  <span style="color:#79c0ff">ON</span> i.author_id = a.id
+  <span style="color:#79c0ff">AND</span> i.day = a.day
+<span style="color:#ff7b72">WHERE</span> i.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> i.day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(i.created_at) = <span style="color:#d2a8ff">DATE</span>(i.day)
+  <span style="color:#79c0ff">AND</span> a.is_spammy = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> a.is_staff = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
     </div>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">💾 Commits</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">snapshots · 41 months</span>
+        <span style="font-size:14px;font-weight:600;">💾 Commits Created</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 13 months</span>
       </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'snapshots'</span>).github_collab_commit_contributions_current
-| <span style="color:#ff7b72">where</span> committed_date >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2023-01-01</span>) <span style="color:#79c0ff">and</span> committed_date < <span style="color:#d2a8ff">datetime</span>({end_date})
-| <span style="color:#ff7b72">summarize</span> TotalCommits = <span style="color:#d2a8ff">sum</span>(commit_count) <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(committed_date)
-| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, c.created_at) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">COUNT</span>(*) <span style="color:#ff7b72">AS</span> total_commits
+<span style="color:#ff7b72">FROM</span> delta.canonical.commits_all c
+<span style="color:#ff7b72">WHERE</span> c.day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> c.day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">DATE</span>(c.created_at) = <span style="color:#d2a8ff">DATE</span>(c.day)
+  <span style="color:#79c0ff">AND</span> c.is_spammy_owner = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> c.is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
     </div>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">⚡ Actions Runs</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">snapshots · 13 months</span>
+        <span style="font-size:14px;font-weight:600;">⚡ Actions Workflow Runs</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 13 months · proxy via num_unique_workflow_runs</span>
       </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'snapshots'</span>).github_actions_checks_results_workflow_runs
-| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2025-06-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
-| <span style="color:#ff7b72">summarize</span> TotalRuns = <span style="color:#d2a8ff">count</span>() <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
-| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS DATE</span>)) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(num_unique_workflow_runs <span style="color:#ff7b72">AS BIGINT</span>)) <span style="color:#ff7b72">AS</span> total_workflow_runs
+<span style="color:#ff7b72">FROM</span> delta.canonical.global_actions_usage
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS DATE</span>) >= <span style="color:#ff7b72">DATE</span> <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> <span style="color:#d2a8ff">CAST</span>(usage_month || <span style="color:#a5d6ff">'-01'</span> <span style="color:#ff7b72">AS DATE</span>) < <span style="color:#ff7b72">DATE</span> <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> product_name = <span style="color:#a5d6ff">'actions'</span>
+  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> is_spammy = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
     </div>
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <span style="font-size:14px;font-weight:600;">⏱️ Actions Minutes</span>
-        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">snapshots · 13 months</span>
+        <span style="font-size:14px;font-weight:600;">⏱️ Actions Minutes (Actual)</span>
+        <span style="font-size:12px;color:var(--text-muted);background:var(--surface2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);">canonical · 13 months · using raw_quantity</span>
       </div>
-      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#d2a8ff">database</span>(<span style="color:#a5d6ff">'snapshots'</span>).github_actions_checks_results_workflow_runs
-| <span style="color:#ff7b72">where</span> created_at >= <span style="color:#d2a8ff">datetime</span>(<span style="color:#a5d6ff">2025-06-01</span>) <span style="color:#79c0ff">and</span> created_at < <span style="color:#d2a8ff">datetime</span>({end_date})
-  <span style="color:#79c0ff">and</span> <span style="color:#d2a8ff">isnotnull</span>(started_at) <span style="color:#79c0ff">and</span> <span style="color:#d2a8ff">isnotnull</span>(completed_at)
-| <span style="color:#ff7b72">extend</span> duration_min = <span style="color:#d2a8ff">datetime_diff</span>(<span style="color:#a5d6ff">"minute"</span>, completed_at, started_at)
-| <span style="color:#ff7b72">where</span> duration_min > 0 <span style="color:#79c0ff">and</span> duration_min < 1440
-| <span style="color:#ff7b72">summarize</span> TotalMinutes = <span style="color:#d2a8ff">sum</span>(duration_min) <span style="color:#ff7b72">by</span> Month = <span style="color:#d2a8ff">startofmonth</span>(created_at)
-| <span style="color:#ff7b72">order by</span> Month <span style="color:#79c0ff">asc</span></pre>
+      <pre style="background:rgba(1,4,9,0.3);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;font-size:12px;margin:0;color:#c9d1d9;white-space:pre-wrap;"><span style="color:#ff7b72">SELECT</span>
+  <span style="color:#d2a8ff">DATE_TRUNC</span>(<span style="color:#a5d6ff">'month'</span>, usage_month) <span style="color:#ff7b72">AS</span> month,
+  <span style="color:#d2a8ff">SUM</span>(<span style="color:#d2a8ff">CAST</span>(raw_quantity <span style="color:#ff7b72">AS BIGINT</span>)) <span style="color:#ff7b72">AS</span> actual_minutes
+<span style="color:#ff7b72">FROM</span> delta.canonical.global_actions_usage
+<span style="color:#ff7b72">WHERE</span> day >= <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> day < <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> usage_month >= <span style="color:#ff7b72">DATE</span> <span style="color:#a5d6ff">'2025-05-01'</span>
+  <span style="color:#79c0ff">AND</span> usage_month < <span style="color:#ff7b72">DATE</span> <span style="color:#a5d6ff">'2026-06-01'</span>
+  <span style="color:#79c0ff">AND</span> product_name = <span style="color:#a5d6ff">'actions'</span>
+  <span style="color:#79c0ff">AND</span> unit_of_measure = <span style="color:#a5d6ff">'Minutes'</span>
+  <span style="color:#79c0ff">AND</span> is_staff_owned = <span style="color:#ff7b72">FALSE</span>
+  <span style="color:#79c0ff">AND</span> is_spammy = <span style="color:#ff7b72">FALSE</span>
+<span style="color:#ff7b72">GROUP BY</span> 1
+<span style="color:#ff7b72">ORDER BY</span> 1;</pre>
     </div>
 
-    <div class="methodology">
-      <h3>📋 Data Quality Notes</h3>
-      <p><strong>Canonical Tables:</strong> Repos, PRs, and Issues use canonical tables (<code>*_current</code> suffix) that filter out spam, deleted entities, and test data. This matches the official GitHub metrics shown in admin dashboards.</p>
-      <p><strong>Commits:</strong> Uses <code>github_collab_commit_contributions_current</code> (latest snapshot only) to avoid double-counting. Previous version used non-current table which counted commits twice due to snapshot overlap.</p>
-      <p><strong>Actions Metrics:</strong> Limited to 13 months of history (Jun 2025–Jun 2026). Actions workflow runs table only became reliable in mid-2025. Earlier data excluded due to instrumentation gaps.</p>
-      <p><strong>Data Freshness:</strong> All queries run through May 31, 2026. Forecasts start June 1, 2026 and extend through December 2026 (8 months ahead).</p>
+    <div style="background:rgba(86,212,221,0.1);border:1px solid #56d4dd;border-radius:8px;padding:16px;margin-top:24px;">
+      <h3 style="color:#56d4dd;font-size:14px;margin-bottom:8px;">✅ Why Canonical Tables?</h3>
+      <ul style="color:var(--text-muted);font-size:13px;line-height:1.8;margin:0;padding-left:20px;">
+        <li><strong>No survivorship bias</strong> — Complete historical data preserved (deleted/spam repos don't vanish)</li>
+        <li><strong>No bot spam</strong> — Proper filtering of github-actions[bot] and spam accounts</li>
+        <li><strong>No pipeline artifacts</strong> — Real data only, no backfill spikes</li>
+        <li><strong>No commit duplication</strong> — Single-counted via canonical data model</li>
+        <li><strong>Recommended by Data Team</strong> — Josh confirmed canonical is source of truth</li>
+      </ul>
     </div>
   </div>
 
