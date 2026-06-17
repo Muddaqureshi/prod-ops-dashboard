@@ -94,7 +94,6 @@
     </div>
     <div class="toggle-group" style="margin-left:auto;">
       <button data-view="data-sources" onclick="switchView('data-sources')">💾 Data Sources</button>
-      <button data-view="data-sources" onclick="switchView('data-sources')">💾 Data Sources</button>
       <button data-view="info" onclick="switchView('info')">ℹ️ Info</button>
     </div>
   </div>
@@ -599,7 +598,10 @@ function renderAll() {
   }).reduce((s,v) => s + v, 0);
   const actual2025_jun_dec = ACTUAL_DATA.filter(d => d.month >= "2025-06" && d.month <= "2025-12").reduce((s,d) => s + d.value, 0);
   const total2025 = actual2025_jun_dec;
-  const growthVs2025 = ((total2026 / total2025 - 1) * 100).toFixed(1);
+  // Calculate YoY: Jun-Dec 2026 vs Jun-Dec 2025
+  const jun_dec_2025 = ACTUAL_DATA.filter(d => d.month >= "2025-06" && d.month <= "2025-12").reduce((s,d) => s + d.value, 0);
+  const jun_dec_2026 = (actual2026 - (ACTUAL_DATA.find(d => d.month === "2026-05")?.value || 0)) + predicted2026;
+  const growthVs2025 = ((jun_dec_2026 / jun_dec_2025 - 1) * 100).toFixed(1);
 
   // Compute trailing 4-month MoM from actuals
   const last4 = ACTUAL_DATA.slice(-4).map(d => d.value);
@@ -613,7 +615,7 @@ function renderAll() {
     <div class="summary-card"><div class="value" style="color:var(--blue)">${fmtNum(total2026, 0)}</div><div class="label">2026 Total (Actual + Predicted)</div></div>
     <div class="summary-card"><div class="value" style="color:var(--text)">${fmtNum(actual2026, 1)}</div><div class="label">2026 Actual (Jan–May)</div></div>
     <div class="summary-card"><div class="value" style="color:var(--yellow)">${fmtNum(predicted2026, 0)}</div><div class="label">2026 Predicted (Jun–Dec)</div></div>
-    <div class="summary-card"><div class="value" style="color:var(--green)">+${growthVs2025}%</div><div class="label">vs 2025 Jun-Dec Growth</div></div>
+    <div class="summary-card"><div class="value" style="color:var(--green)">+${growthVs2025}%</div><div class="label">Jun-Dec Growth vs 2025</div></div>
     <div class="summary-card"><div class="value" style="color:var(--orange)">${trailingMoM}%</div><div class="label">Trailing 4-Mo MoM</div></div>
     <div class="summary-card"><div class="value" style="color:var(--blue)">${forwardMoM}%</div><div class="label">Forward Weighted Avg MoM</div></div>
   `;
@@ -792,6 +794,7 @@ function renderAll() {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } },
@@ -898,6 +901,7 @@ function renderAll() {
       },
       options: {
         responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: { position: 'top', labels: { usePointStyle: true, padding: 16, filter: item => !['P75','P25'].includes(item.text) } },
@@ -1000,6 +1004,7 @@ function renderAll() {
       data: { labels: weekLabels, datasets: weeklyDatasets },
       options: {
         responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } },
@@ -1100,6 +1105,7 @@ function renderAll() {
     data: { labels: monthNames, datasets: yoyDatasets },
     options: {
       responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } },
@@ -1169,6 +1175,7 @@ function renderAll() {
     data: { labels: cmpLabels, datasets: cmpDatasets },
     options: {
       responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { usePointStyle: true, padding: 16 } },
@@ -1209,6 +1216,7 @@ function renderAll() {
       data: { labels: boomLabels, datasets: boomDatasets },
       options: {
         responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: { position: 'top', labels: { usePointStyle: true, padding: 16 } },
@@ -1237,6 +1245,7 @@ function renderAll() {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtNum(ctx.parsed.y) } } },
       scales: {
         x: { grid: { display: false } },
@@ -1303,7 +1312,13 @@ function switchView(view) {
   currentView = view;
   document.querySelectorAll('#view-toggle button, [data-view="info"], [data-view="data-sources"]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === view);
-  });
+  
+  // Ensure data-sources-view is properly shown
+  const dataSourcesView = document.getElementById('data-sources-view');
+  if (dataSourcesView) {
+    dataSourcesView.style.display = view === 'data-sources' ? 'block' : 'none';
+  }
+});
   document.getElementById('forecast-view').style.display = view === 'forecast' ? '' : 'none';
   document.getElementById('backtest-view').style.display = view === 'backtest' ? '' : 'none';
   document.getElementById('validation-view').style.display = view === 'validation' ? '' : 'none';
@@ -1361,6 +1376,7 @@ function renderBacktest() {
     data: { labels, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
+layout: { padding: { bottom: 30 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { usePointStyle: true, padding: 12, font: {size: 11} } },
@@ -1472,9 +1488,7 @@ function renderValidation() {
   let disclaimer = '';
   if (currentMetric === 'actions' || currentMetric === 'actions_mins') {
     disclaimer = `<div style="background:rgba(229,192,123,0.1);border-left:4px solid var(--yellow);padding:12px;margin-bottom:16px;font-size:13px;">
-      <strong>⚠️ Actions Validation Note:</strong> Actions metrics have only 13 months of history (Jun 2025 – Jun 2026). 
-      The 12-month holdout leaves very limited training data (1 month), making validation unreliable. 
-      MAPE scores are <strong>directional estimates only</strong>. See Info tab for full methodology.
+      <strong></strong> 
     </div>`;
   }
   
