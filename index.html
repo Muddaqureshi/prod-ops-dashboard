@@ -783,9 +783,15 @@ function renderAll() {
   const weeklyData = ALL_WEEKLY[currentMetric] || [];
   const may2026Weeks = weeklyData.filter(d => d.week >= '2026-05-01' && d.week < '2026-06-01');
   const maySumFromWeekly = may2026Weeks.reduce((s, d) => s + d.value, 0);
-  // Prefer real Kusto monthly total for May 2026 over weekly-bucket sum
+  // May 2026 actual point: prefer the real Kusto monthly total, then the canonical monthly
+  // actual from METRICS, and only fall back to the weekly-bucket sum if neither exists.
+  // Weekly buckets for the current month are often incomplete (they under-count by ~35-50%
+  // for commits/actions/actions_mins), which previously produced a misleading dip at May
+  // followed by a jump back up at the prediction boundary. Using the true monthly total keeps
+  // the actuals on the same monthly scale as the predictions across every metric.
   const mayKusto = (POST_CUTOFF_ACTUALS['2026-05'] || {})[currentMetric];
-  const maySum = mayKusto || maySumFromWeekly;
+  const mayMonthly = (ACTUAL_DATA.find(d => d.month === '2026-05') || {}).value;
+  const maySum = mayKusto || mayMonthly || maySumFromWeekly;
   const showWeekly = yoyPeriod === 'weekly' && weeklyData.length > 0;
 
   // Filter actuals to start from Jan 4, 2026 (first weekly bucket of 2026)
