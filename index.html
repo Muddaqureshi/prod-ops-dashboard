@@ -688,7 +688,11 @@ Chart.defaults.font.family = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvet
 
 let mainChart, yoyChart, compareChart, annualChart, mcChart, boomChart;
 let currentMetric = 'repos';
-let yoyPeriod = 'weekly';
+// Default the main "Actual vs Predicted" chart to monthly granularity so actuals and
+// predictions share the same time bucket. Mixing weekly actuals (small per-week values)
+// with monthly predictions (large aggregated values) produced a misleading visual jump at
+// the prediction boundary. Weekly rendering is still supported via the showWeekly branch.
+let yoyPeriod = 'monthly';
 
 function switchMetric(metric) {
   currentMetric = metric;
