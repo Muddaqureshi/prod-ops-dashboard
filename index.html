@@ -911,10 +911,11 @@ function renderAll() {
     };
   });
 
-  // Prediction boundary: positioned between May and June columns on monthly time scale.
-  // Monthly data points are at 2026-05-01 and 2026-06-01, so midpoint is around May 16.
+  // Prediction boundary: positioned at June 1, 2026 where predictions actually start.
+  // Semantics: "Prediction starts" = first month with forecasted (not actual) data.
+  // Actuals through May 31 → Predictions from June 1.
   // Use normalized Date object to avoid parser mismatch between annotation and custom label.
-  const predictionStartStr = (showWeekly && weeklyPredAnchor) ? weeklyPredAnchor.week : '2026-05-16T12:00:00';
+  const predictionStartStr = (showWeekly && weeklyPredAnchor) ? weeklyPredAnchor.week : '2026-06-01T00:00:00';
   const predictionStartDate = new Date(predictionStartStr);
   const predictionStartMs = predictionStartDate.getTime();
 
