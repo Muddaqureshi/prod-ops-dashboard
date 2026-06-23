@@ -913,8 +913,8 @@ function renderAll() {
 
   // Prediction boundary: aligns with the first predicted point of the prediction line.
   // In weekly mode, the prediction line anchors at the last weekly bucket before Jun 1;
-  // in monthly mode it anchors at end of May 2026 (2026-05-31), so predictions begin Jun 1.
-  const predictionStart = (showWeekly && weeklyPredAnchor) ? weeklyPredAnchor.week : '2026-05-31';
+  // in monthly mode it anchors at start of June 2026 (2026-06-01), so predictions begin Jun 1.
+  const predictionStart = (showWeekly && weeklyPredAnchor) ? weeklyPredAnchor.week : '2026-06-01';
 
   const firstMonth = extLabels[0] || ACTUAL_DATA[0].month;
   const firstMonthKey = firstMonth.length >= 7 ? firstMonth.slice(0,7) : firstMonth;
