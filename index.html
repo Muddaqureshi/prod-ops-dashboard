@@ -1261,12 +1261,12 @@ layout: { padding: { bottom: 30 } },
         tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtNum(ctx.parsed.y) } },
         annotation: {
           annotations: {
-            // V4: Chart.js uses 0-based indexing. xMin:4.5 = between index 4 (May) and index 5 (June).
-            // This chart shows last 12 months. May is index 4, June (first prediction) is index 5.
+            // Prediction starts at June 1, 2026 (first forecast month).
+            // May is index 4 (actual), June is index 5 (first prediction).
+            // Line should be AT June boundary (index 5), not midpoint (4.5).
             predLine: {
               type: 'line',
-              // 🔧 FIX C12: Boundary between May (idx 4) and Jun (idx 5), not Apr-May
-              xMin: 4.5, xMax: 4.5,
+              xMin: 5, xMax: 5,
               borderColor: 'rgba(229,192,123,0.5)',
               borderWidth: 2,
               borderDash: [4, 4]
@@ -1283,7 +1283,7 @@ layout: { padding: { bottom: 30 } },
     plugins: [{
       afterDraw(chart) {
         const xScale = chart.scales.x;
-        const x = xScale.getPixelForValue(4.5);  // V3 FIX: Index 4.5 (was 3.5)
+        const x = xScale.getPixelForValue(5);  // Index 5 = June (first prediction month)
         const ctx2 = chart.ctx;
         ctx2.save();
         ctx2.font = '10px -apple-system,BlinkMacSystemFont,sans-serif';
