@@ -911,11 +911,12 @@ function renderAll() {
     };
   });
 
-  // Prediction boundary: aligns with the first predicted point of the prediction line.
-  // In weekly mode, the prediction line anchors at the last weekly bucket before Jun 1;
-  // in monthly mode it should be between May anchor and first prediction (Jun).
-  // Use May 31 (end of May) to position line between May and June visually.
-  const predictionStart = (showWeekly && weeklyPredAnchor) ? weeklyPredAnchor.week : '2026-05-31';
+  // Prediction boundary: positioned between May and June columns on monthly time scale.
+  // Monthly data points are at 2026-05-01 and 2026-06-01, so midpoint is around May 16.
+  // Use normalized Date object to avoid parser mismatch between annotation and custom label.
+  const predictionStartStr = (showWeekly && weeklyPredAnchor) ? weeklyPredAnchor.week : '2026-05-16T12:00:00';
+  const predictionStartDate = new Date(predictionStartStr);
+  const predictionStartMs = predictionStartDate.getTime();
 
   const firstMonth = extLabels[0] || ACTUAL_DATA[0].month;
   const firstMonthKey = firstMonth.length >= 7 ? firstMonth.slice(0,7) : firstMonth;
@@ -942,7 +943,7 @@ layout: { padding: { bottom: 30 } },
           annotations: {
             predLine: {
               type: 'line',
-              xMin: predictionStart, xMax: predictionStart,
+              xMin: predictionStartMs, xMax: predictionStartMs,
               borderColor: 'rgba(229,192,123,0.5)',
               borderWidth: 2,
               borderDash: [4, 4]
@@ -968,7 +969,7 @@ layout: { padding: { bottom: 30 } },
     plugins: [{
       afterDraw(chart) {
         const xScale = chart.scales.x;
-        const x = xScale.getPixelForValue(new Date(predictionStart).getTime());
+        const x = xScale.getPixelForValue(predictionStartMs);
         const ctx2 = chart.ctx;
         ctx2.save();
         ctx2.font = '10px -apple-system,BlinkMacSystemFont,sans-serif';
